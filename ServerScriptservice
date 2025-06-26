@@ -1,0 +1,127 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+
+-- Создаем события для Delta
+local Events = Instance.new("Folder")
+Events.Name = "DeltaEvents"
+Events.Parent = ReplicatedStorage
+
+-- RemoteEvents
+local ChangeSky = Instance.new("RemoteEvent"); ChangeSky.Name = "ChangeSky"; ChangeSky.Parent = Events
+local AddParticles = Instance.new("RemoteEvent"); AddParticles.Name = "AddParticles"; AddParticles.Parent = Events
+local GiveWeapon = Instance.new("RemoteEvent"); GiveWeapon.Name = "GiveWeapon"; GiveWeapon.Parent = Events
+
+-- SkyBox текстуры
+local SkyBoxes = {
+    Space = {
+        SkyboxBk = "rbxassetid://13089111",
+        SkyboxDn = "rbxassetid://13089113",
+        SkyboxFt = "rbxassetid://13089114",
+        SkyboxLf = "rbxassetid://13089116",
+        SkyboxRt = "rbxassetid://13089117",
+        SkyboxUp = "rbxassetid://13089118"
+    },
+    Sunset = {
+        SkyboxBk = "rbxassetid://49111098",
+        SkyboxDn = "rbxassetid://49111102",
+        SkyboxFt = "rbxassetid://49111104",
+        SkyboxLf = "rbxassetid://49111106",
+        SkyboxRt = "rbxassetid://49111108",
+        SkyboxUp = "rbxassetid://49111110"
+    },
+    Night = {
+        SkyboxBk = "rbxassetid://159454299",
+        SkyboxDn = "rbxassetid://159454296",
+        SkyboxFt = "rbxassetid://159454293",
+        SkyboxLf = "rbxassetid://159454290",
+        SkyboxRt = "rbxassetid://159454287",
+        SkyboxUp = "rbxassetid://159454281"
+    }
+}
+
+-- Обработчики событий
+ChangeSky.OnServerEvent:Connect(function(player, skyName)
+    if SkyBoxes[skyName] then
+        for property, id in pairs(SkyBoxes[skyName]) do
+            Lighting.Sky[property] = id
+        end
+    end
+end)
+
+AddParticles.OnServerEvent:Connect(function(player, particleType)
+    local character = player.Character
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    -- Удаляем старые частицы
+    for _, v in ipairs(humanoidRootPart:GetChildren()) do
+        if v:IsA("ParticleEmitter") then
+            v:Destroy()
+        end
+    end
+    
+    local particle = Instance.new("ParticleEmitter")
+    particle.Parent = humanoidRootPart
+    
+    if particleType == "Fire" then
+        particle.Texture = "rbxassetid://242880287"
+        particle.Color = ColorSequence.new(Color3.new(1, 0.5, 0))
+        particle.Size = NumberSequence.new(1)
+        particle.Lifetime = NumberRange.new(1, 2)
+        particle.Rate = 50
+        particle.Speed = NumberRange.new(5)
+    elseif particleType == "Sparkle" then
+        particle.Texture = "rbxassetid://296074887"
+        particle.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 0)),
+            ColorSequenceKeypoint.new(1, Color3.new(0, 1, 1))
+        })
+        particle.Size = NumberSequence.new(0.5)
+        particle.Lifetime = NumberRange.new(1.5)
+        particle.Rate = 30
+        particle.Speed = NumberRange.new(2)
+        particle.SpreadAngle = Vector2.new(45, 45)
+    end
+end)
+
+GiveWeapon.OnServerEvent:Connect(function(player, weaponName)
+    local backpack = player:FindFirstChild("Backpack")
+    if not backpack then return end
+    
+    local tool = Instance.new("Tool")
+    tool.Name = weaponName
+    tool.CanBeDropped = false
+    
+    local handle = Instance.new("Part")
+    handle.Name = "Handle"
+    handle.Size = Vector3.new(1, 1, 3)
+    handle.Parent = tool
+    
+    -- Стилизация оружия
+    if weaponName == "Sword" then
+        handle.BrickColor = BrickColor.new("Bright red")
+        handle.Material = EnumMaterial.Neon
+    elseif weaponName == "Gun" then
+        handle.BrickColor = BrickColor.new("Black")
+        handle.Size = Vector3.new(1, 1, 2)
+    elseif weaponName == "Rocket" then
+        handle.BrickColor = BrickColor.new("Camo")
+        handle.Size = Vector3.new(1.5, 1.5, 3)
+    end
+    
+    -- Добавляем скрипт для оружия
+    local script = Instance.new("Script")
+    script.Name = "WeaponScript"
+    script.Source = [[
+        local Tool = script.Parent
+        Tool.Activated:Connect(function()
+            -- Базовая логика использования оружия
+        end)
+    ]]
+    script.Parent = tool
+    
+    tool.Parent = backpack
+end)
