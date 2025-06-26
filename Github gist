@@ -1,0 +1,217 @@
+-- https://gist.githubusercontent.com/YourGistID/raw/mobile_gui.lua
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Удаляем старые GUI
+if playerGui:FindFirstChild("DeltaMobileGui") then
+    playerGui.DeltaMobileGui:Destroy()
+end
+if playerGui:FindFirstChild("DeltaMobileCheat") then
+    playerGui.DeltaMobileCheat:Destroy()
+end
+
+-- Создаем контейнер
+local mobileGuiContainer = Instance.new("ScreenGui")
+mobileGuiContainer.Name = "DeltaMobileGui"
+mobileGuiContainer.ResetOnSpawn = false
+mobileGuiContainer.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+mobileGuiContainer.Parent = playerGui
+
+-- Активационная кнопка
+local activateBtn = Instance.new("ImageButton")
+activateBtn.Name = "DeltaActivateBtn"
+activateBtn.Size = UDim2.new(0, 60, 0, 60)
+activateBtn.Position = UDim2.new(0.8, 0, 0.8, 0)
+activateBtn.AnchorPoint = Vector2.new(0.5, 0.5)
+activateBtn.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+activateBtn.Image = "rbxassetid://7072718362"
+activateBtn.ScaleType = Enum.ScaleType.Fit
+activateBtn.Parent = mobileGuiContainer
+
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(1, 0)
+btnCorner.Parent = activateBtn
+
+-- Анимация пульсации
+local function pulseAnimation()
+    while activateBtn and activateBtn.Parent do
+        TweenService:Create(activateBtn, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+            Size = UDim2.new(0, 65, 0, 65)
+        }):Play()
+        wait(0.8)
+        TweenService:Create(activateBtn, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+            Size = UDim2.new(0, 60, 0, 60)
+        }):Play()
+        wait(0.8)
+    end
+end
+
+coroutine.wrap(pulseAnimation)()
+
+-- Функция создания GUI
+local function createMainGUI()
+    if playerGui:FindFirstChild("DeltaMobileCheat") then
+        playerGui.DeltaMobileCheat:Destroy()
+    end
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "DeltaMobileCheat"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+    
+    -- Основной фрейм
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = UDim2.new(0.8, 0, 0.7, 0)
+    mainFrame.Position = UDim2.new(0.1, 0, 0.15, 0)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+    mainFrame.BackgroundTransparency = 0.05
+    mainFrame.BorderSizePixel = 0
+    mainFrame.ClipsDescendants = true
+    mainFrame.Parent = screenGui
+    
+    local frameCorner = Instance.new("UICorner")
+    frameCorner.CornerRadius = UDim.new(0.03, 0)
+    frameCorner.Parent = mainFrame
+    
+    -- Заголовок
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Text = "DELTA CHEATS"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 24
+    title.TextColor3 = Color3.fromRGB(100, 180, 255)
+    title.Size = UDim2.new(1, 0, 0.1, 0)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Parent = mainFrame
+    
+    -- Закрыть кнопка
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Name = "CloseBtn"
+    closeBtn.Text = "X"
+    closeBtn.TextSize = 20
+    closeBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    closeBtn.Size = UDim2.new(0.1, 0, 0.1, 0)
+    closeBtn.Position = UDim2.new(0.9, 0, 0, 0)
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Parent = mainFrame
+    
+    -- Список функций
+    local functions = {
+        {Name = "Space SkyBox", Icon = "🌌", Type = "Sky", Value = "Space"},
+        {Name = "Sunset SkyBox", Icon = "🌇", Type = "Sky", Value = "Sunset"},
+        {Name = "Night SkyBox", Icon = "🌃", Type = "Sky", Value = "Night"},
+        {Name = "Fire Particles", Icon = "🔥", Type = "Particles", Value = "Fire"},
+        {Name = "Sparkle Particles", Icon = "✨", Type = "Particles", Value = "Sparkle"},
+        {Name = "Give Sword", Icon = "⚔️", Type = "Weapon", Value = "Sword"},
+        {Name = "Give Gun", Icon = "🔫", Type = "Weapon", Value = "Gun"},
+        {Name = "Give Rocket", Icon = "🚀", Type = "Weapon", Value = "Rocket"}
+    }
+    
+    -- Контейнер для кнопок
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Name = "ScrollFrame"
+    scrollFrame.Size = UDim2.new(0.95, 0, 0.8, 0)
+    scrollFrame.Position = UDim2.new(0.025, 0, 0.15, 0)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.ScrollBarThickness = 5
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, #functions * 70)
+    scrollFrame.Parent = mainFrame
+    
+    -- Создаем кнопки
+    for i, func in ipairs(functions) do
+        local btn = Instance.new("TextButton")
+        btn.Name = func.Name
+        btn.Text = "  " .. func.Icon .. "  " .. func.Name
+        btn.Font = Enum.Font.Gotham
+        btn.TextSize = 18
+        btn.TextXAlignment = Enum.TextXAlignment.Left
+        btn.TextColor3 = Color3.fromRGB(220, 220, 220)
+        btn.Size = UDim2.new(1, 0, 0, 60)
+        btn.Position = UDim2.new(0, 0, 0, (i-1)*70)
+        btn.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        btn.AutoButtonColor = false
+        btn.Parent = scrollFrame
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0.2, 0)
+        btnCorner.Parent = btn
+        
+        -- Анимация при нажатии
+        btn.MouseButton1Down:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(70, 130, 180)}):Play()
+        end)
+        
+        btn.MouseButton1Up:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
+            activateFunction(func.Type, func.Value)
+        end)
+        
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}):Play()
+        end)
+    end
+    
+    -- Функция активации
+    local function activateFunction(funcType, value)
+        local Events = game:GetService("ReplicatedStorage"):WaitForChild("DeltaEvents")
+        
+        if funcType == "Sky" then
+            Events.ChangeSky:FireServer(value)
+        elseif funcType == "Particles" then
+            Events.AddParticles:FireServer(value)
+        elseif funcType == "Weapon" then
+            Events.GiveWeapon:FireServer(value)
+        end
+        
+        -- Уведомление
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "DELTA CHEAT",
+            Text = "Активировано: "..value,
+            Icon = "rbxassetid://7072718362",
+            Duration = 2
+        })
+    end
+    
+    -- Закрытие GUI
+    closeBtn.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+        activateBtn.Visible = true
+    end)
+    
+    -- Перетаскивание
+    local dragging, dragStart, startPos
+    
+    mainFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+        end
+    end)
+    
+    mainFrame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.TouchMoved:Connect(function(input)
+        if dragging then
+            local delta = input.Position - dragStart
+            mainFrame.Position = startPos + UDim2.new(0, delta.X, 0, delta.Y)
+        end
+    end)
+end
+
+-- Активация GUI
+activateBtn.MouseButton1Click:Connect(function()
+    activateBtn.Visible = false
+    createMainGUI()
+end)
